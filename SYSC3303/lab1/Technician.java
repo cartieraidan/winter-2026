@@ -31,7 +31,9 @@ public class Technician extends Thread  {
                     try {
                         lock.wait();
                     } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
                         throw new RuntimeException(e);
+
                     }
                 }
                 // implementation
