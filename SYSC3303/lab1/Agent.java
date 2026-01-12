@@ -18,8 +18,27 @@ public class Agent extends Thread {
     public Agent() {
         assemblyTable = new ArrayList<>();
         techs = new ArrayList<>();
-
-
+        
+        this.addTechs();
+    }
+    
+    private void addTechs() {
+        Technician t1 = new Technician(Components.Frame, this);
+        Technician t2 = new Technician(Components.ControlFirmware, this);
+        Technician t3 = new Technician(Components.PropulsionUnit, this);
+        
+        techs.add(t1);
+        techs.add(t2);
+        techs.add(t3);
+    }
+    
+    public void startProduction() {
+        
+        this.start();
+        
+        for (Thread tech: techs) {
+            tech.start();
+        }
     }
 
     // notify techs when table is updated
@@ -91,8 +110,14 @@ public class Agent extends Thread {
             try {
                 this.wait(); // don't know if this is good
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
                 throw new RuntimeException(e);
             }
         }
+    }
+    
+    public static void main(String[] args) {
+        Agent agent = new Agent();
+        agent.startProduction();
     }
 }
