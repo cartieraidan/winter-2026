@@ -26,8 +26,8 @@ public class Agent extends Thread {
     private void notifyTech() {
         synchronized (lock) {
             for (Thread tech : techs) {
-                tech.notify();
-                ((ObservableTech) tech).tableUpdated();
+                ((Technician) tech).setScheduled(true);
+                lock.notifyAll();
             }
         }
     }
