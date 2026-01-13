@@ -9,73 +9,112 @@ import java.util.Random;
  */
 public class Agent extends Thread {
 
-    private final Object lock = new Object(); // may add second lock for concurrency depending on task
+    private final Object lock1 = new Object();
+    private final Object lock2 = new Object(); // used for reading
     private volatile ArrayList<Components>  assemblyTable;
     private ArrayList<Thread> techs;
     private int assembledDrones = 0;
+    private int techLatch = 0;
 
     // initialize everything like all threads
     public Agent() {
         assemblyTable = new ArrayList<>();
         techs = new ArrayList<>();
-        
+
         this.addTechs();
     }
-    
+
+    public void incrementLatch() {
+        synchronized (lock1) {
+            techLatch++;
+            lock1.notify();
+        }
+    }
+
     private void addTechs() {
-        Technician t1 = new Technician(Components.Frame, this);
-        Technician t2 = new Technician(Components.ControlFirmware, this);
-        Technician t3 = new Technician(Components.PropulsionUnit, this);
-        
+        Technician t1 = new Technician(Components.Frame, this, "T1 (Frame)");
+        Technician t2 = new Technician(Components.ControlFirmware, this, "T2 (Firmware)");
+        Technician t3 = new Technician(Components.PropulsionUnit, this, "T3 (Propulsion)");
+
         techs.add(t1);
         techs.add(t2);
         techs.add(t3);
     }
-    
+
     public void startProduction() {
-        
+
         this.start();
-        
+
         for (Thread tech: techs) {
             tech.start();
         }
+
+        this.updateTable();
     }
 
     // notify techs when table is updated
     private void notifyTech() {
-        synchronized (lock) {
+        synchronized (lock1) {
             for (Thread tech : techs) {
                 ((Technician) tech).setScheduled(true);
-                lock.notifyAll();
+
             }
+            this.techLatch = 0;
+            lock1.notifyAll();
+
+            while (techLatch < techs.size()) {
+                try {
+                    lock1.wait();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+
         }
+        if (techLatch == 3) {
+            System.out.println("Going to next combination");
+            this.updateTable();
+        }
+
     }
 
     // get lock for techs when modifying
-    public Object getLock() {
-        return lock;
+    public Object getLock1() {
+        return lock1;
+    }
+
+    public Object getLock2() {
+        return lock2;
     }
 
     // called by techs when done assembling
     public void incrementCount() {
-        synchronized (lock) {
-            if (assembledDrones++ >= 20) {
+        synchronized (lock1) {
+            assembledDrones++;
+            System.out.println("Increment count: " + assembledDrones);
+            if (assembledDrones == 20) {
+                System.out.println("Reached max");
                 this.endThreads();
-            } else {
-                this.updateTable();
             }
+
+
         }
 
     }
 
     // so the techs can see what's on the table
     public ArrayList<Components> getAssemblyTable() {
-        return assemblyTable;
+        synchronized (lock1) { // called in tech thread, because it already has a lock it won't get blocked
+            return assemblyTable;
+        }
     }
 
     private void updateTable() {
 
-        synchronized (lock) {
+        synchronized (lock1) {
+            if (assembledDrones == 20) return;
+
             assemblyTable.clear(); // clears previous old components
             Random rand = new Random();
 
@@ -91,6 +130,14 @@ public class Agent extends Thread {
                 }
             }
 
+            // test
+            System.out.print("Current combination: ");
+            for (Components comp : assemblyTable) {
+                System.out.print(comp + ", ");
+            }
+            System.out.println();
+            // end test
+
             notifyTech(); // notifies techs of table has been updated
         }
     }
@@ -102,20 +149,18 @@ public class Agent extends Thread {
         }
 
         this.interrupt(); // end agent task
+
+        System.exit(0);
     }
 
     @Override
     public void run() {
         while (!Thread.currentThread().isInterrupted()) {
-            try {
-                this.wait(); // don't know if this is good
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                throw new RuntimeException(e);
-            }
+
+
         }
     }
-    
+
     public static void main(String[] args) {
         Agent agent = new Agent();
         agent.startProduction();
