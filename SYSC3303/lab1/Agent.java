@@ -2,7 +2,9 @@ import java.util.ArrayList;
 import java.util.Random;
 
 /**
- *
+ *Note I'm sure when I rewrite this I can optimize it to only have the recommend agent go and not need to always do all 3. Say
+ * T1 miss then T2 hit don't need to do T3 so put to wait, like change its state to not active -> can do that in the thread of the
+ * task that hit.
  *
  * @author Aidan Cartier
  * @version Jan 12, 2026
