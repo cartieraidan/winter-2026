@@ -1,11 +1,20 @@
 import java.util.ArrayList;
 
+/**
+ * Class where it controls the creation and management of threads.
+ *
+ * @author Aidan Cartier
+ * @version Jan 14, 2026
+ */
 public class ProductionController {
 
     private ArrayList<Thread> techs;
     private Agent agent;
     private boolean destroy = false;
 
+    /**
+     * Constructor that setups the environment for assignment 1.
+     */
     public ProductionController() {
         this.techs = new ArrayList<>();
 
@@ -21,6 +30,9 @@ public class ProductionController {
 
     }
 
+    /**
+     * Method starts all threads.
+     */
     public void startProduction() {
 
         agent.start();
@@ -30,6 +42,9 @@ public class ProductionController {
         }
     }
 
+    /**
+     * method ends all threads when done.
+     */
     public void endThreads() {
         if (!destroy) {
             destroy = true;
