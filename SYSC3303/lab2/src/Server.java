@@ -12,7 +12,7 @@ public class Server {
             // bind to available port for sending Datagram packets
             sendSocket = new DatagramSocket();
 
-            // bind socket to port 5000 for receiving messages
+            // bind socket to port 6000 for receiving messages
             receiveSocket = new DatagramSocket(6000);
 
             System.out.println("Battle Royal Server started on port 6000");
@@ -35,7 +35,7 @@ public class Server {
             receiveSocket.receive(receivePacket);
 
         } catch (IOException e) {
-            System.out.println("Receive Socket Timed Out.\n" + e);
+            System.out.println("Receive Socket Timed Out. Server\n" + e);
             System.exit(1);
         }
 
@@ -73,14 +73,14 @@ public class Server {
         int len = sendPacket.getLength();
         System.out.println("Length: " + len);
         System.out.print("Containing: ");
-        System.out.println(new String(sendPacket.getData(),0,len)); // !!!!!!! here we're sending back the message
+        System.out.println(new String(sendPacket.getData(),0,len) + "\n"); // !!!!!!! here we're sending back the message
         // !!!!!!!! but we should be sending a validation if it was valid or not
 
         // send datagram packet back to host
         try {
             sendSocket.send(sendPacket);
         }  catch (IOException e) {
-            System.out.println("Send Socket Timed Out.\n" + e);
+            System.out.println("Send Socket Timed Out. Server\n" + e);
             System.exit(1);
         }
     }
