@@ -88,7 +88,7 @@ public class Client {
 
         // Form a String from the byte array.
         String received = new String(data,0,len);
-        System.out.println(received + "\n");
+        System.out.println(received);
 
         String message = this.process(received);
 
@@ -110,8 +110,8 @@ public class Client {
         String command;
         String action;
 
-        if (received.startsWith("PLAYERS=")) {
-            message = this.playerCommand();
+        if (received.startsWith("PLAYERS=") || received.equals("MOVE_OK") || received.equals("BAD_INPUT")) {
+            message = message + this.playerCommand();
             command = "STATE";
             action = "returnOptions";
         } else {
@@ -152,8 +152,10 @@ public class Client {
             } else if (consoleOutput.length == 1) {
                 if (consoleOutput[0].equals("STATE")) {
                     message = message + "STATE:" + this.playerID;
-                } else {
+                } else if  (consoleOutput[0].equals("QUIT")) {
                     message = message + "QUIT:" + this.playerID;
+                } else { // catch all
+                    return this.playerCommand();
                 }
             }
 
@@ -161,6 +163,8 @@ public class Client {
             System.out.println("Error while reading console output");
             System.exit(1);
         }
+
+        System.out.println("\n");
 
         return message;
     }

@@ -57,7 +57,7 @@ public class Server {
 
         // Adding delay
         try {
-            Thread.sleep(2000);
+            Thread.sleep(1000);
         } catch (InterruptedException e ) {
             System.out.println("Sleep interrupted: " + e);
             System.exit(1);
@@ -94,6 +94,13 @@ public class Server {
             message = message + gameState.serialize();
         } if (command.equals("QUIT")) {
             message = message + "QUITED";
+        } if (command.equals("MOVE")) {
+            if (output.length == 4) {
+                gameState.movePlayer(Integer.parseInt(action), Integer.parseInt(output[2]), Integer.parseInt(output[3]));
+                message = message + "MOVE_OK";
+            } else  {
+                message = message + "BAD_INPUT";
+            }
         }
 
         return message;
