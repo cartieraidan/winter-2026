@@ -59,13 +59,19 @@ public class Server {
             System.exit(1);
         }
 
-        this.echo(data); // !!!!!!! here should be where we process the command and if it was valid to move
+        // !!!!! message processed
+        String message = "#Connected";
+
+        // convert string into bytes array
+        byte[] data2 = new byte[100];
+        data2 = message.getBytes();
+        this.echo(data2); // !!!!!!! here should be where we process the command and if it was valid to move
 
     }
 
     public void echo(byte[] data) {
         // creating datagram packet to send back to host
-        sendPacket = new DatagramPacket(data, receivePacket.getLength(), receivePacket.getAddress(), receivePacket.getPort());
+        sendPacket = new DatagramPacket(data, data.length, receivePacket.getAddress(), receivePacket.getPort());
 
         System.out.println("Server: sent: ");
         System.out.println("To host: " + sendPacket.getAddress());

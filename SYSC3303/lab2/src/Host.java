@@ -3,30 +3,43 @@ import java.net.*;
 
 public class Host {
     DatagramPacket sendPacket, receivePacket;
-    DatagramSocket sendReceiveSocket; // !!!!!!! might add separate sockets / create receive/send for client and server
-    // so sendReceiveServer & sendReceiveClient & maybe for packets as well
+    DatagramSocket sendReceiveSocket;
+
+    int previousClientPort = 0;
+    public enum FROM {server, client};
+    FROM from = FROM.client;
+
+    int count = 0;
 
     public Host() {
         try {
-            sendReceiveSocket = new DatagramSocket(); // !!!!!! will need a similar one like server to receive from client
+            sendReceiveSocket = new DatagramSocket(5000);
 
             System.out.println("Battle Royal Server started on port 6000");
         } catch (SocketException e) {
-            System.out.println("Socket Exception at Constructor of server");
+            System.out.println("Socket Exception at Constructor of host");
             System.exit(1);
         }
     }
 
-    public void send() { // !!!!!! add params to accept from client / maybe change this to sendToServer
 
-        String message = "Hello connection made";
+    public void forward(String message) { // !!!!!! add params to accept from client / maybe change this to sendToServer
+
+        //String message = "Hello connection made";
+
+        int forwardPort;
 
         // convert string into bytes array
         byte[] msg = message.getBytes();
 
         // make datagram packet to be sent to the server
         try {
-            sendPacket = new DatagramPacket(msg, msg.length, InetAddress.getLocalHost(), 6000);
+            if (from == FROM.client && previousClientPort != 0) {
+                forwardPort = previousClientPort; // returning message from server to client
+            } else {
+                forwardPort = 6000; // server port
+            }
+            sendPacket = new DatagramPacket(msg, msg.length, InetAddress.getLocalHost(), forwardPort);
 
         } catch (UnknownHostException uhe) {
             System.out.println("Unknown Host Exception");
@@ -34,8 +47,8 @@ public class Host {
         }
 
         System.out.println("Host: forwarded: ");
-        System.out.println("To server: " + sendPacket.getAddress());
-        System.out.println("To server port: " + sendPacket.getPort());
+        System.out.println("To " + from + ": " + sendPacket.getAddress());
+        System.out.println("To " + from + " port: " + sendPacket.getPort());
         int len = sendPacket.getLength();
         System.out.println("Length: " + len);
         System.out.print("Containing: ");
@@ -68,24 +81,50 @@ public class Host {
             System.exit(1);
         }
 
+        int len = receivePacket.getLength();
+        // Form a String from the byte array.
+        String received = new String(data,1,len - 1);
+
+        String _char = new String(data, 0, 1);
+        if (_char.equals("@")) {
+            System.out.println("Host received @ -> client");
+
+            from = FROM.client;
+            previousClientPort = receivePacket.getPort();
+
+        } else if (_char.equals("#")) {
+            System.out.println("Host received # -> server");
+
+            from = FROM.server;
+
+        }
+
+
+
         // process received packet
         System.out.println("Host: received: ");
-        System.out.println("From server: " + receivePacket.getAddress());
-        System.out.println("From server port: " + receivePacket.getPort());
-        int len = receivePacket.getLength();
+        System.out.println("From " + from + ": " + receivePacket.getAddress());
+        System.out.println("From " + from + " port: " + receivePacket.getPort());
+        //int len = receivePacket.getLength();
         System.out.println("Length: " + len);
         System.out.print("Containing: ");
 
         // Form a String from the byte array.
-        String received = new String(data,0,len);
-        System.out.println(received);
+        //String received = new String(data,0,len);
+        System.out.println(received + "\n");
 
         // We're finished, so close the socket.
-        sendReceiveSocket.close(); // !!!!!modify after
+        //sendReceiveSocket.close(); // !!!!!modify after
+
+        if (count < 1) {
+            from = (from == FROM.client) ? FROM.server : FROM.client; // reversing since get from client then forwarding to server
+            this.forward(received);
+            count++;
+        }
     }
 
     public static void main( String[] args ) {
         Host host = new Host();
-        host.send();
+        host.receive();
     }
 }
