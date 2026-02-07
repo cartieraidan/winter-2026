@@ -110,7 +110,8 @@ public class Client {
         String command;
         String action;
 
-        if (received.startsWith("PLAYERS=") || received.equals("MOVE_OK") || received.equals("BAD_INPUT")) {
+        if (received.startsWith("PLAYERS=") || received.equals("MOVE_OK")
+                || received.equals("BAD_INPUT") || received.equals("PICKUP_OK") || received.equals("PICKUP_FAIL")) {
             message = message + this.playerCommand();
             command = "STATE";
             action = "returnOptions";

@@ -90,16 +90,23 @@ public class Server {
         if (command.equals("JOIN")) {
             Player player = gameState.addNewPlayer(action);
             message = message + "JOINED:" + player.getId();
-        } if (command.equals("STATE")) {
+        } else if (command.equals("STATE")) {
             message = message + gameState.serialize();
-        } if (command.equals("QUIT")) {
+        } else if (command.equals("QUIT")) {
             message = message + "QUITED";
-        } if (command.equals("MOVE")) {
+        } else if (command.equals("MOVE")) {
             if (output.length == 4) {
                 gameState.movePlayer(Integer.parseInt(action), Integer.parseInt(output[2]), Integer.parseInt(output[3]));
                 message = message + "MOVE_OK";
             } else  {
                 message = message + "BAD_INPUT";
+            }
+        } else if (command.equals("PICKUP")) {
+            boolean item = gameState.processPickup(Integer.parseInt(action), Integer.parseInt(output[2]));
+            if (item) {
+                message = message + "PICKUP_OK";
+            } else   {
+                message = message + "PICKUP_FAIL";
             }
         }
 
