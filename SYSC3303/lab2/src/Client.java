@@ -8,16 +8,11 @@ public class Client {
     DatagramPacket sendPacket, receivePacket;
     DatagramSocket sendReceiveSocket;
 
-    public Client() {
-        try {
-            System.out.println("Client started. Socket on random port.\n" + "Enter your player name: ");
-            BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
-            this.playerName = input.readLine();
+    public enum Action {
+        JOIN
+    }
 
-        } catch (IOException e) {
-            System.out.println("Could not read player name");
-            System.exit(1);
-        }
+    public Client() {
 
         try {
             sendReceiveSocket = new DatagramSocket();
@@ -32,9 +27,9 @@ public class Client {
         return playerName;
     }
 
-    public void send() { // !!!!!! add params to accept from client / maybe change this to sendToServer
+    public void send(String message) {
 
-        String message = "@Hello from client";
+        //String message = "@Hello from client";
 
         // convert string into bytes array
         byte[] msg = message.getBytes();
@@ -93,16 +88,79 @@ public class Client {
 
         // Form a String from the byte array.
         String received = new String(data,0,len);
-        System.out.println(received);
+        System.out.println(received + "\n");
 
+        String message = this.process(received);
+
+        this.send(message);
         // We're finished, so close the socket.
-        sendReceiveSocket.close(); // !!!!!modify after
+        //sendReceiveSocket.close(); // !!!!!modify after
 
+
+    }
+
+    private String process(String received) {
+        String message = "@";
+
+        String[] output = received.split(":", 2);
+        String command;
+        String action;
+
+        if (output.length > 1) {
+            command = output[0];
+            action = output[1];
+        } else {
+            return message + "error";
+        }
+
+        if (command.equals("JOINED")) {
+            this.playerID = Integer.parseInt(action);
+            System.out.println("Joined game with playerId = " + this.playerID);
+            System.out.println("Commands: MOVE dx dy | PICKUP lootId | STATE | QUIT");
+
+            try {
+                BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
+                String[] consoleOutput = input.readLine().split(" ", 3);
+
+                if (consoleOutput.length == 3) {
+                    message = message + "MOVE:" + this.playerID + ":" + consoleOutput[1] + ":" + consoleOutput[2];
+                } else if (consoleOutput.length == 2) {
+                    message = message + "PICKUP:" + this.playerID + ":" + consoleOutput[1];
+                } else if (consoleOutput.length == 1) {
+                    if (consoleOutput[0].equals("STATE")) {
+                        message = message + "STATE:" + this.playerID;
+                    } else {
+                        message = message + "QUIT:" + this.playerID;
+                    }
+                }
+
+            } catch (IOException e) {
+                System.out.println("Error while reading console output");
+                System.exit(1);
+            }
+
+        }
+
+        return message;
+    }
+
+    public void join() {
+        try {
+            System.out.println("Client started. Socket on random port.\n" + "Enter your player name: ");
+            BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
+            this.playerName = input.readLine();
+
+        } catch (IOException e) {
+            System.out.println("Could not read player name");
+            System.exit(1);
+        }
+
+        this.send("@JOIN:" + this.getPlayerName());
     }
 
     public static void main( String[] args ) {
         Client client = new Client();
-        client.send();
+        client.join();
     }
 
 }

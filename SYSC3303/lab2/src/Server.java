@@ -6,7 +6,11 @@ public class Server {
     DatagramPacket sendPacket, receivePacket;
     DatagramSocket sendSocket, receiveSocket;
 
+    GameState gameState;
+
     public Server() {
+
+        gameState = new GameState();
 
         try {
             // bind to available port for sending Datagram packets
@@ -60,13 +64,37 @@ public class Server {
         }
 
         // !!!!! message processed
-        String message = "#Connected";
+        String output = this.process(received);
 
         // convert string into bytes array
         byte[] data2 = new byte[100];
-        data2 = message.getBytes();
+        data2 = output.getBytes();
         this.echo(data2); // !!!!!!! here should be where we process the command and if it was valid to move
 
+    }
+
+    private String process(String input) {
+        String message = "#";
+
+        String[] output = input.split(":", 4);
+        String command;
+        String action;
+
+        if (output.length > 1) {
+            command = output[0];
+            action = output[1];
+        } else {
+            return message + "error";
+        }
+
+        if (command.equals("JOIN")) {
+            Player player = gameState.addNewPlayer(action);
+            message = message + "JOINED:" + player.getId();
+        } if (command.equals("STATE")) {
+            message = message + gameState.serialize();
+        }
+
+        return message;
     }
 
     public void echo(byte[] data) {
@@ -89,6 +117,8 @@ public class Server {
             System.out.println("Send Socket Timed Out. Server\n" + e);
             System.exit(1);
         }
+
+        this.receive();
     }
 
     public static void main( String[] args ) {

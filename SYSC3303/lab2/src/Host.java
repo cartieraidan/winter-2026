@@ -9,8 +9,6 @@ public class Host {
     public enum FROM {server, client};
     FROM from = FROM.client;
 
-    int count = 0;
-
     public Host() {
         try {
             sendReceiveSocket = new DatagramSocket(5000);
@@ -116,11 +114,11 @@ public class Host {
         // We're finished, so close the socket.
         //sendReceiveSocket.close(); // !!!!!modify after
 
-        if (count < 1) {
-            from = (from == FROM.client) ? FROM.server : FROM.client; // reversing since get from client then forwarding to server
-            this.forward(received);
-            count++;
-        }
+
+        from = (from == FROM.client) ? FROM.server : FROM.client; // reversing since get from client then forwarding to server
+        this.forward(received);
+
+
     }
 
     public static void main( String[] args ) {
