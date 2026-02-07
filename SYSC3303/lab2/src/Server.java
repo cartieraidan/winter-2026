@@ -92,6 +92,8 @@ public class Server {
             message = message + "JOINED:" + player.getId();
         } if (command.equals("STATE")) {
             message = message + gameState.serialize();
+        } if (command.equals("QUIT")) {
+            message = message + "QUITED";
         }
 
         return message;
@@ -118,6 +120,10 @@ public class Server {
             System.exit(1);
         }
 
+        if (new String(data).equals("#QUITED")) {
+            System.out.println("Server quit");
+            System.exit(1);
+        }
         this.receive();
     }
 

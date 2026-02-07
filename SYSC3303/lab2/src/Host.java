@@ -61,6 +61,11 @@ public class Host {
             System.exit(1);
         }
 
+        if (message.equals("QUITED")) {
+            System.out.println("Host quit");
+            System.exit(1);
+        }
+
         this.receive();
     }
 

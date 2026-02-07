@@ -100,45 +100,66 @@ public class Client {
     }
 
     private String process(String received) {
+        if (received.equals("QUITED")) {
+            System.out.println("Client quit");
+            System.exit(1);
+        }
+
         String message = "@";
 
-        String[] output = received.split(":", 2);
         String command;
         String action;
 
-        if (output.length > 1) {
-            command = output[0];
-            action = output[1];
+        if (received.startsWith("PLAYERS=")) {
+            message = this.playerCommand();
+            command = "STATE";
+            action = "returnOptions";
         } else {
-            return message + "error";
+            String[] output = received.split(":", 2);
+
+
+            if (output.length > 1) {
+                command = output[0];
+                action = output[1];
+            } else {
+                return message + "error";
+            }
         }
 
         if (command.equals("JOINED")) {
             this.playerID = Integer.parseInt(action);
             System.out.println("Joined game with playerId = " + this.playerID);
-            System.out.println("Commands: MOVE dx dy | PICKUP lootId | STATE | QUIT");
 
-            try {
-                BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
-                String[] consoleOutput = input.readLine().split(" ", 3);
+            message = message + this.playerCommand();
+        }
 
-                if (consoleOutput.length == 3) {
-                    message = message + "MOVE:" + this.playerID + ":" + consoleOutput[1] + ":" + consoleOutput[2];
-                } else if (consoleOutput.length == 2) {
-                    message = message + "PICKUP:" + this.playerID + ":" + consoleOutput[1];
-                } else if (consoleOutput.length == 1) {
-                    if (consoleOutput[0].equals("STATE")) {
-                        message = message + "STATE:" + this.playerID;
-                    } else {
-                        message = message + "QUIT:" + this.playerID;
-                    }
+        return message;
+    }
+
+    private String playerCommand() {
+        String message = "";
+
+        System.out.println("Commands: MOVE dx dy | PICKUP lootId | STATE | QUIT");
+
+        try {
+            BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
+            String[] consoleOutput = input.readLine().split(" ", 3);
+
+            if (consoleOutput.length == 3) {
+                message = message + "MOVE:" + this.playerID + ":" + consoleOutput[1] + ":" + consoleOutput[2];
+            } else if (consoleOutput.length == 2) {
+                message = message + "PICKUP:" + this.playerID + ":" + consoleOutput[1];
+            } else if (consoleOutput.length == 1) {
+                if (consoleOutput[0].equals("STATE")) {
+                    message = message + "STATE:" + this.playerID;
+                } else {
+                    message = message + "QUIT:" + this.playerID;
                 }
-
-            } catch (IOException e) {
-                System.out.println("Error while reading console output");
-                System.exit(1);
             }
 
+        } catch (IOException e) {
+            System.out.println("Error while reading console output");
+            System.exit(1);
         }
 
         return message;
