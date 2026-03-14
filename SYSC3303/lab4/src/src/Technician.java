@@ -28,6 +28,7 @@ public class Technician extends Thread {
      * @param assemblyTable Reference to AssemblyTable to consume components.
      * @param agent Reference to Agent to signal when drone assembled.
      * @param name Name just for debugging purposes.
+     * @param logger EventLogger reference.
      */
     public Technician(Components inheritedComponent, AssemblyTable assemblyTable, Agent agent, String name, EventLogger logger) {
         this.inheritedComponent = inheritedComponent;

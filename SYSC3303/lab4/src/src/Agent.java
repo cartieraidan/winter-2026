@@ -24,6 +24,7 @@ public class Agent extends Thread {
      * Constructor to create Agent class, updates AssemblyTable when empty.
      *
      * @param assemblyTable Reference to assembly table Agent will put to.
+     * @param logger EventLogger reference.
      * @param controller Reference to controller for Agent to notify when assembled all drones.
      */
     public Agent(AssemblyTable assemblyTable, ProductionController controller,  EventLogger logger) {
@@ -40,6 +41,7 @@ public class Agent extends Thread {
     /**
      * Method increments count of drones assembled and signals controller to end all threads
      * if reached max amount.
+     * @param name String of thread name running method.
      */
     public void incrementCount(String name) {
         //synchronized (readLock) { // dont think need sync
@@ -74,7 +76,7 @@ public class Agent extends Thread {
                     Components comp = Components.values()[rand.nextInt(Components.values().length)];
                     if (comp != components.getFirst()) { // checks they're unique
                         components.add(comp);
-                        this.logger.log(this.name, "Components Selected", "(" + components.getFirst().toString() + ", " + components.getLast().toString() + ")");
+                        this.logger.log(this.name, "Components Selected", "(" + components.getFirst().toString() + "; " + components.getLast().toString() + ")");
                     }
 
                 } else {

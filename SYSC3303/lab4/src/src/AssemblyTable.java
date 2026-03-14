@@ -18,6 +18,7 @@ public class AssemblyTable {
 
     /**
      * Constructor for shared section.
+     * @param logger EventLogger reference.
      */
     public AssemblyTable(EventLogger logger) {
         table = new ArrayList<>();
@@ -44,6 +45,7 @@ public class AssemblyTable {
      * Method used by Agent to add new components when table is empty.
      *
      * @param components ArrayList of components, expected length is 2.
+     * @param name String of thread name running method.
      * @throws InterruptedException Calls object.wait() therefore needs to be caught somewhere else.
      */
     public void put(ArrayList<Components> components, String name) throws InterruptedException {
@@ -54,7 +56,7 @@ public class AssemblyTable {
             }
             if (Thread.currentThread().isInterrupted()) return;
             table = components; // new components
-            this.logger.log(name, "Placed Components", "(" + components.getFirst().toString() + ", " + components.getLast().toString() + ")");
+            this.logger.log(name, "Placed Components", "(" + components.getFirst().toString() + "; " + components.getLast().toString() + ")");
 
             System.out.println("table updated");
             this.logger.log(name, "NotifyAll");
@@ -66,6 +68,7 @@ public class AssemblyTable {
      * Method used by technicians to get the components in the table.
      *
      * @return ArrayLIst of components on current table.
+     * @param name String of thread name running method.
      * @throws InterruptedException Calls object.wait() therefore needs to be caught somewhere else.
      */
     public ArrayList<Components> get(String name) throws InterruptedException {
@@ -83,6 +86,7 @@ public class AssemblyTable {
 
     /**
      * Method removes current components on table.
+     * @param name String of thread name running method.
      */
     public void signalAssembled(String name) {
         synchronized (readLock) {
