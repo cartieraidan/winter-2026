@@ -1,6 +1,12 @@
 import java.io.*;
 import java.net.*;
 
+/**
+ * Class handles all game logic between Client and GameState.
+ *
+ * @author Aidan Cartier
+ * @version Feb 7, 2026
+ */
 public class Server {
 
     DatagramPacket sendPacket, receivePacket;
@@ -8,6 +14,9 @@ public class Server {
 
     GameState gameState;
 
+    /**
+     * Constructor for building the game and main communication between host.
+     */
     public Server() {
 
         gameState = new GameState();
@@ -26,9 +35,12 @@ public class Server {
             System.exit(1);
         }
 
-        // !!!!! need to initialize gameState here
+
     }
 
+    /**
+     * Method for receiving messages from host.
+     */
     public void receive() {
         // construct datagram packet for receiving up to 100 bytes
         byte[] data = new byte[100];
@@ -73,6 +85,12 @@ public class Server {
 
     }
 
+    /**
+     * Method for determining states of server and GameState from messages processed from client.
+     *
+     * @param input String of client message.
+     * @return Return a returning message for the client to process.
+     */
     private String process(String input) {
         String message = "#";
 
@@ -113,6 +131,11 @@ public class Server {
         return message;
     }
 
+    /**
+     * Method for returning a message back to host.
+     *
+     * @param data Aray of bytes for message.
+     */
     public void echo(byte[] data) {
         // creating datagram packet to send back to host
         sendPacket = new DatagramPacket(data, data.length, receivePacket.getAddress(), receivePacket.getPort());

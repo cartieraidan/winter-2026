@@ -1,6 +1,12 @@
 import java.io.*;
 import java.net.*;
 
+/**
+ * Class made to represent Client playing game.
+ *
+ * @author Aidan Cartier
+ * @version Feb 7, 2026
+ */
 public class Client {
     private String  playerName;
     private int playerID;
@@ -8,14 +14,13 @@ public class Client {
     DatagramPacket sendPacket, receivePacket;
     DatagramSocket sendReceiveSocket;
 
-    public enum Action {
-        JOIN
-    }
-
+    /**
+     * Constructor creating socket for client.
+     */
     public Client() {
 
         try {
-            sendReceiveSocket = new DatagramSocket();
+            sendReceiveSocket = new DatagramSocket(); // create socket
 
         } catch (SocketException e) {
             System.out.println("Socket Exception at Constructor of client");
@@ -23,10 +28,20 @@ public class Client {
         }
     }
 
+    /**
+     * Get player name.
+     *
+     * @return String of player name.
+     */
     public String getPlayerName() {
         return playerName;
     }
 
+    /**
+     * Method send, sends a datagram using UDP to Host.
+     *
+     * @param message String messaging containing to send.
+     */
     public void send(String message) {
 
         //String message = "@Hello from client";
@@ -63,7 +78,10 @@ public class Client {
         this.receive();
     }
 
-    public void receive() { // maybe have separate methods for server and client?
+    /**
+     * Method for receives datagram from host.
+     */
+    public void receive() {
 
         // creating datagram packet to receive bytes
         byte[] data = new byte[100];
@@ -93,42 +111,46 @@ public class Client {
         String message = this.process(received);
 
         this.send(message);
-        // We're finished, so close the socket.
-        //sendReceiveSocket.close(); // !!!!!modify after
 
 
     }
 
+    /**
+     * Method process to process string messaged received from host.
+     *
+     * @param received String to determine next state.
+     * @return Return a returning message to send back after player input.
+     */
     private String process(String received) {
-        if (received.equals("QUITED")) {
+        if (received.equals("QUITED")) { // if quit processed from server
             System.out.println("Client quit");
             System.exit(1);
         }
 
-        String message = "@";
+        String message = "@"; // used to identify from where the message is coming from
 
-        String command;
-        String action;
+        String command; // index 0
+        String playerDt; // index 1 -> player name or player id
 
+        // messages from server that do not require any other logic
         if (received.startsWith("PLAYERS=") || received.equals("MOVE_OK")
                 || received.equals("BAD_INPUT") || received.equals("PICKUP_OK") || received.equals("PICKUP_FAIL")) {
             message = message + this.playerCommand();
             command = "STATE";
-            action = "returnOptions";
-        } else {
-            String[] output = received.split(":", 2);
-
+            playerDt = "returnOptions";
+        } else { // everything else
+            String[] output = received.split(":", 2); // split message
 
             if (output.length > 1) {
                 command = output[0];
-                action = output[1];
+                playerDt = output[1];
             } else {
-                return message + "error";
+                return message + "error"; // receive a bad input
             }
         }
 
-        if (command.equals("JOINED")) {
-            this.playerID = Integer.parseInt(action);
+        if (command.equals("JOINED")) { // for when player first joins
+            this.playerID = Integer.parseInt(playerDt);
             System.out.println("Joined game with playerId = " + this.playerID);
 
             message = message + this.playerCommand();
@@ -137,6 +159,11 @@ public class Client {
         return message;
     }
 
+    /**
+     * Method handles most all states for Client and determining what the client shall send to server.
+     *
+     * @return String for next message.
+     */
     private String playerCommand() {
         String message = "";
 
@@ -170,6 +197,9 @@ public class Client {
         return message;
     }
 
+    /**
+     * Method is for getting player name and ID.r
+     */
     public void join() {
         try {
             System.out.println("Client started. Socket on random port.\n" + "Enter your player name: ");

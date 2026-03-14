@@ -1,14 +1,23 @@
 import java.io.*;
 import java.net.*;
 
+/**
+ * Class acting as the relay between Client and Server.
+ *
+ * @author Aidan Cartier
+ * @version Feb 7, 2026
+ */
 public class Host {
     DatagramPacket sendPacket, receivePacket;
     DatagramSocket sendReceiveSocket;
 
-    int previousClientPort = 0;
-    public enum FROM {server, client};
+    int previousClientPort = 0; // so we can send the message back to client
+    public enum FROM {server, client}; // track who is sending message
     FROM from = FROM.client;
 
+    /**
+     * Constructor for initializing socket.
+     */
     public Host() {
         try {
             sendReceiveSocket = new DatagramSocket(5000);
@@ -20,7 +29,11 @@ public class Host {
         }
     }
 
-
+    /**
+     * Method for forwarding messages to Client and Server.
+     *
+     * @param message String message sending
+     */
     public void forward(String message) { // !!!!!! add params to accept from client / maybe change this to sendToServer
 
         //String message = "Hello connection made";
@@ -69,6 +82,9 @@ public class Host {
         this.receive();
     }
 
+    /**
+     * Method for receiving messages from Client and Server.
+     */
     public void receive() { // maybe have separate methods for server and client?
 
         // creating datagram packet to receive bytes
@@ -90,13 +106,13 @@ public class Host {
 
         String _char = new String(data, 0, 1);
         if (_char.equals("@")) {
-            System.out.println("Host received @ -> client");
+            //System.out.println("Host received @ -> client");
 
             from = FROM.client;
             previousClientPort = receivePacket.getPort();
 
         } else if (_char.equals("#")) {
-            System.out.println("Host received # -> server");
+            //System.out.println("Host received # -> server");
 
             from = FROM.server;
 
