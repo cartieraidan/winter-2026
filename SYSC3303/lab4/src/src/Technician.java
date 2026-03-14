@@ -17,6 +17,8 @@ public class Technician extends Thread {
     private final Object readLock;
     //private final Object readLock;
 
+    private final EventLogger logger;
+
     /**
      * Constructor for Technician which consumes from AssemblyTable and signals Agent when assembled.
      * (probably could have had a flag that signals in technician that it has assembled and requires agent to
@@ -27,11 +29,14 @@ public class Technician extends Thread {
      * @param agent Reference to Agent to signal when drone assembled.
      * @param name Name just for debugging purposes.
      */
-    public Technician(Components inheritedComponent, AssemblyTable assemblyTable, Agent agent, String name) {
+    public Technician(Components inheritedComponent, AssemblyTable assemblyTable, Agent agent, String name, EventLogger logger) {
         this.inheritedComponent = inheritedComponent;
         this.assemblyTable = assemblyTable;
         this.agent = agent;
         this.name = name;
+
+        this.logger = logger;
+        this.logger.log(this.name, "Thread Created");
 
         this.readLock = assemblyTable.getReadLock(); // get lock from shared section
         //this.readLock = assemblyTable.getReadLock();
@@ -46,16 +51,19 @@ public class Technician extends Thread {
         //synchronized (readLock) {
 
             try {
-                ArrayList<Components> table = assemblyTable.get();
+                ArrayList<Components> table = assemblyTable.get(this.name);
 
                 for (Components component : table) { // checks if all components are unique
                     if (component.equals(inheritedComponent)) {
                         return false;
                     }
                 }
+                this.logger.log(this.name, "Picked Components", "(" + table.getFirst().toString() + ", " + table.getLast().toString() + ")");
                 return true;
             } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+
+                this.logger.log(this.name, "Done");
+                return false;
             }
 
 
@@ -70,8 +78,14 @@ public class Technician extends Thread {
      */
     private void assembleDrone() {
         //synchronized (readLock) {
-            assemblyTable.signalAssembled();
-            agent.incrementCount();
+
+        assemblyTable.signalAssembled(this.name);
+        synchronized (this.readLock) {
+
+            agent.incrementCount(this.name);
+        }
+
+
         //}
     }
 
@@ -83,6 +97,7 @@ public class Technician extends Thread {
         while (!Thread.currentThread().isInterrupted()) { // continue running until thread interrupt flag
             synchronized (readLock) {
 
+
                 // implementation
                 System.out.println(name + " Scheduled");
                 if (this.checkValidCombination()) { // if valid combo assemble drone
@@ -90,6 +105,8 @@ public class Technician extends Thread {
                     this.assembleDrone();
                 } else {
                     try {
+                        if (Thread.currentThread().isInterrupted()) return;
+                        this.logger.log(this.name, "Waiting");
                         readLock.wait();
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
@@ -98,5 +115,7 @@ public class Technician extends Thread {
 
             }
         }
+
+        this.logger.log(this.name, "Done");
     }
 }

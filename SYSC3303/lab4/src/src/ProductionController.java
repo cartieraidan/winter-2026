@@ -11,6 +11,7 @@ public class ProductionController {
     private ArrayList<Thread> techs;
     private Agent agent;
     private boolean destroy = false;
+    private EventLogger logger;
 
     /**
      * Constructor that setups the environment for assignment 1.
@@ -18,12 +19,14 @@ public class ProductionController {
     public ProductionController() {
         this.techs = new ArrayList<>();
 
-        AssemblyTable assemblyTable = new AssemblyTable();
+        this.logger = new EventLogger();
 
-        agent = new Agent(assemblyTable, this);
-        Technician t1 = new Technician(Components.Frame, assemblyTable, agent, "t1");
-        Technician t2 = new Technician(Components.ControlFirmware, assemblyTable, agent, "t2");
-        Technician t3 = new Technician(Components.PropulsionUnit, assemblyTable, agent, "t3");
+        AssemblyTable assemblyTable = new AssemblyTable(this.logger);
+
+        agent = new Agent(assemblyTable, this,  this.logger);
+        Technician t1 = new Technician(Components.Frame, assemblyTable, agent, "t1", this.logger);
+        Technician t2 = new Technician(Components.ControlFirmware, assemblyTable, agent, "t2",  this.logger);
+        Technician t3 = new Technician(Components.PropulsionUnit, assemblyTable, agent, "t3",   this.logger);
         techs.add(t1);
         techs.add(t2);
         techs.add(t3);
@@ -54,7 +57,7 @@ public class ProductionController {
 
             agent.interrupt(); // end agent task
 
-            System.exit(0);
+            //System.exit(0);
         }
     }
 

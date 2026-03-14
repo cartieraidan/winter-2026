@@ -14,11 +14,14 @@ public class AssemblyTable {
     private final Object readLock;
     //private final Object readLock;
 
+    private final EventLogger logger;
+
     /**
      * Constructor for shared section.
      */
-    public AssemblyTable() {
+    public AssemblyTable(EventLogger logger) {
         table = new ArrayList<>();
+        this.logger = logger;
 
         readLock = new Object();
        // readLock = new Object();
@@ -43,13 +46,18 @@ public class AssemblyTable {
      * @param components ArrayList of components, expected length is 2.
      * @throws InterruptedException Calls object.wait() therefore needs to be caught somewhere else.
      */
-    public void put(ArrayList<Components> components) throws InterruptedException {
+    public void put(ArrayList<Components> components, String name) throws InterruptedException {
         synchronized (readLock) {
             while (!table.isEmpty()) { // table not empty = wait
+                this.logger.log(name, "Waiting");
                 readLock.wait();
             }
+            if (Thread.currentThread().isInterrupted()) return;
             table = components; // new components
+            this.logger.log(name, "Placed Components", "(" + components.getFirst().toString() + ", " + components.getLast().toString() + ")");
+
             System.out.println("table updated");
+            this.logger.log(name, "NotifyAll");
             readLock.notifyAll(); // wake up everyone waiting
         }
     }
@@ -60,9 +68,11 @@ public class AssemblyTable {
      * @return ArrayLIst of components on current table.
      * @throws InterruptedException Calls object.wait() therefore needs to be caught somewhere else.
      */
-    public ArrayList<Components> get() throws InterruptedException {
+    public ArrayList<Components> get(String name) throws InterruptedException {
         synchronized (readLock) {
             while (table.isEmpty()) { // table empty = wait
+                if (Thread.currentThread().isInterrupted()) throw new InterruptedException();
+                this.logger.log(name, "Waiting");
                 readLock.wait();
             }
 
@@ -74,11 +84,12 @@ public class AssemblyTable {
     /**
      * Method removes current components on table.
      */
-    public void signalAssembled() {
+    public void signalAssembled(String name) {
         synchronized (readLock) {
             System.out.println("Table deleted");
             table.clear();
 
+            this.logger.log(name, "NotifyAll");
             readLock.notifyAll();
         }
 

@@ -17,15 +17,22 @@ public class Agent extends Thread {
 
     private final Object readLock;
 
+    private final EventLogger logger;
+    private final String name = "Agent";
+
     /**
      * Constructor to create Agent class, updates AssemblyTable when empty.
      *
      * @param assemblyTable Reference to assembly table Agent will put to.
      * @param controller Reference to controller for Agent to notify when assembled all drones.
      */
-    public Agent(AssemblyTable assemblyTable, ProductionController controller) {
+    public Agent(AssemblyTable assemblyTable, ProductionController controller,  EventLogger logger) {
         this.assemblyTable = assemblyTable;
         this.controller = controller;
+
+        this.logger = logger;
+
+        this.logger.log(this.name, "Thread Created");
 
         this.readLock = assemblyTable.getReadLock(); // get lock from shared memory
     }
@@ -34,14 +41,18 @@ public class Agent extends Thread {
      * Method increments count of drones assembled and signals controller to end all threads
      * if reached max amount.
      */
-    public void incrementCount() {
+    public void incrementCount(String name) {
         //synchronized (readLock) { // dont think need sync
             assembledDrones++;
+            this.logger.log(name, "Drone Assembled", "Count of Drone Assembled: " + assembledDrones);
             System.out.println("Increment count: " + assembledDrones);
             if (assembledDrones == 20) { // if reached max
                 System.out.println("Reached max");
-                this.controller.endThreads(); // interrupts all threads
+                synchronized (readLock) {
+                    this.controller.endThreads(); // interrupts all threads
+                }
             }
+
 
         //}
 
@@ -63,6 +74,7 @@ public class Agent extends Thread {
                     Components comp = Components.values()[rand.nextInt(Components.values().length)];
                     if (comp != components.getFirst()) { // checks they're unique
                         components.add(comp);
+                        this.logger.log(this.name, "Components Selected", "(" + components.getFirst().toString() + ", " + components.getLast().toString() + ")");
                     }
 
                 } else {
@@ -71,7 +83,7 @@ public class Agent extends Thread {
             }
 
             try { // try and add to table
-                assemblyTable.put(components);
+                assemblyTable.put(components, this.name);
                 //this.incrementCount();
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
@@ -101,5 +113,7 @@ public class Agent extends Thread {
             }
 
         }
+
+        this.logger.log(this.name, "Done");
     }
 }
